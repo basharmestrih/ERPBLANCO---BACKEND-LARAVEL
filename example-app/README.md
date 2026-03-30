@@ -1,64 +1,329 @@
-diff --git a/c:\Users\S\Desktop\temp\Projects\Last versions\ERP BLANCO\backend\example-app\README.md b/c:\Users\S\Desktop\temp\Projects\Last versions\ERP BLANCO\backend\example-app\README.md
-deleted file mode 100644
---- a/c:\Users\S\Desktop\temp\Projects\Last versions\ERP BLANCO\backend\example-app\README.md
-+++ /dev/null
-@@ -1,59 +0,0 @@
--<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
--
--<p align="center">
--<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
--<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
--<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
--<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
--</p>
--
--## About Laravel
--
--Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
--
--- [Simple, fast routing engine](https://laravel.com/docs/routing).
--- [Powerful dependency injection container](https://laravel.com/docs/container).
--- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
--- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
--- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
--- [Robust background job processing](https://laravel.com/docs/queues).
--- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
--
--Laravel is accessible, powerful, and provides tools required for large, robust applications.
--
--## Learning Laravel
--
--Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
--
--If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
--
--## Laravel Sponsors
--
--We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
--
--### Premium Partners
--
--- **[Vehikl](https://vehikl.com)**
--- **[Tighten Co.](https://tighten.co)**
--- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
--- **[64 Robots](https://64robots.com)**
--- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
--- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
--- **[Redberry](https://redberry.international/laravel-development)**
--- **[Active Logic](https://activelogic.com)**
--
--## Contributing
--
--Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
--
--## Code of Conduct
--
--In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
--
--## Security Vulnerabilities
--
--If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
--
--## License
--
--The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# ERP BLANCO Backend
+
+Laravel-based backend for an ERP workflow covering authentication, role-based access, customers, catalog management, sales orders, invoicing, warehouse inventory, reporting, and Stripe-powered payments.
+
+## Overview
+
+This backend is organized as a modular Laravel 12 application under `app/Modules/*`. It uses:
+
+- Laravel 12
+- PHP 8.2+
+- Laravel Sanctum for token auth
+- Spatie Permission for roles and permissions
+- Spatie Model States for order and invoice state management
+- Laravel Cashier + Stripe for invoice payments
+- Laravel Excel for downloadable reports
+
+## Implemented Features
+
+### Authentication and user management
+
+- User login with Sanctum token generation
+- Authenticated `me` endpoint returning roles and permissions
+- User listing, creation, update, deletion, and role assignment
+- Role/permission seeding for:
+  - Super Admin
+  - Admin
+  - Sales
+  - Inventory Manager
+  - Accountant
+
+### Roles and permissions
+
+Seeded permissions cover:
+
+- User management
+- Product management
+- Order creation and approval
+- Invoice viewing, creation, and payment
+- Stock movement and stock adjustment
+- Report viewing and exporting
+
+### Customer management
+
+- Create customers with profile and business data
+- List customers
+- Delete customers
+- Customer-scoped order endpoints are wired in routes for authenticated customer flows
+
+### Product and catalog management
+
+- Product listing
+- Product create, update, and delete
+- Categories with parent/child hierarchy support
+- Unit management
+- Warehouse creation and listing
+- Product quantities by warehouse
+
+### Sales orders
+
+- Create sales orders with multiple order items
+- List orders with filters:
+  - `status`
+  - `date`
+  - `created_by`
+  - `low_quantity`
+  - `high_quantity`
+- Customer-specific order listing
+- Order approval flow
+- Order deletion
+- Stock availability validation before order creation
+
+### Order state workflow
+
+Order states are implemented with model states:
+
+- `Pending`
+- `Approved`
+- `Cancelled`
+
+Approving an order triggers domain events that automatically:
+
+- create stock movement records
+- decrease per-warehouse inventory
+- create the related invoice
+
+### Inventory and stock movements
+
+- Stock movement listing with filters:
+  - `type`
+  - `date`
+  - `quantity`
+- Stock movement creation for:
+  - `in`
+  - `out`
+  - `adjustment`
+- Product total quantity updates
+- Per-warehouse inventory tracking via pivot records
+- Automatic warehouse stock updates for inbound and adjustment movements
+- Low-stock data used by reporting dashboard cache
+
+### Invoicing
+
+- Invoice creation from approved orders
+- Automatic invoice item generation from order items
+- Invoice listing with filters:
+  - `status`
+  - `date`
+  - `total`
+- Invoice resource responses
+- Payment initiation endpoint for Stripe
+
+### Invoice state workflow
+
+Invoice states are implemented with model states:
+
+- `Draft`
+- `Issued`
+- `PartiallyPaid`
+- `Paid`
+- `Refunded`
+
+### Payments and Stripe integration
+
+- Stripe payment intent creation for invoices
+- Stripe webhook endpoint
+- Signature verification using `STRIPE_WEBHOOK_SECRET`
+- Payment intent success event handling
+- Automatic invoice payment marking on successful Stripe webhook
+- Payment transaction recording in the `payments` table
+
+### Reporting and exports
+
+- Cached dashboard metrics endpoint
+- Manual dashboard cache refresh endpoint
+- Daily invoice Excel export
+- Weekly invoice Excel export
+- Queued job for generating daily invoice report files
+- Artisan command for refreshing dashboard cache
+
+### Dashboard metrics currently cached
+
+- Total orders
+- Total orders cost
+- Pending invoices
+- Lowest inventory product summary
+
+## Main Modules
+
+- `Auth`
+- `Customer`
+- `Product`
+- `Category`
+- `Unit`
+- `Warehouse`
+- `ProductWarehouse`
+- `Sales`
+- `StockMovement`
+- `Invoice`
+- `Payment`
+- `Reporting`
+
+## API Summary
+
+Key API groups currently exposed in `routes/api.php`:
+
+- Auth:
+  - `POST /api/login`
+  - `POST /api/register`
+  - `GET /api/me`
+- Users and roles:
+  - `GET /api/users`
+  - `GET /api/roles`
+  - `POST /api/users`
+  - `PUT /api/users/{id}`
+  - `POST /api/users/{id}/role`
+  - `DELETE /api/users/{id}`
+- Customers:
+  - `GET /api/customers`
+  - `POST /api/customers`
+  - `DELETE /api/customers/{customer}`
+- Products:
+  - `GET /api/products`
+  - `POST /api/products`
+  - `PUT /api/products/{product}`
+  - `DELETE /api/products/{product}`
+- Orders:
+  - `GET /api/orders`
+  - `POST /api/orders`
+  - `POST /api/orders/{order}/approve`
+  - `DELETE /api/orders/{order}`
+- Invoices:
+  - `GET /api/invoices`
+  - `POST /api/orders/{order}/invoice`
+  - `POST /api/invoices/{invoice}/pay`
+- Inventory:
+  - `GET /api/stock-movements`
+  - `POST /api/stock-movements`
+  - `GET /api/warehouses`
+  - `POST /api/warehouses`
+  - `GET /api/productwarehouses/{warehouse}`
+- Catalog helpers:
+  - `GET /api/categories`
+  - `POST /api/categories`
+  - `GET /api/units`
+  - `POST /api/units`
+- Reports:
+  - `GET /api/reports/dashboard`
+  - `POST /api/reports/dashboard/refresh`
+  - `GET /api/reports/invoices/daily`
+  - `GET /api/reports/invoices/weekly`
+- Webhooks:
+  - `POST /api/stripe/webhook`
+
+## Project Structure
+
+```text
+app/
+  Http/
+  Jobs/
+  Modules/
+    Category/
+    Customer/
+    Invoice/
+    Payment/
+    Product/
+    ProductWarehouse/
+    Reporting/
+    Sales/
+    StockMovement/
+    Unit/
+    Warehouse/
+database/
+  migrations/
+  seeders/
+docs/
+routes/
+```
+
+## Getting Started
+
+### Requirements
+
+- PHP 8.2+
+- Composer
+- Node.js and npm
+- MySQL or another Laravel-supported database
+- Stripe account/keys for payment features
+
+### Installation
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+npm install
+```
+
+### Optional seeded roles and permissions
+
+```bash
+php artisan db:seed --class=RolePermissionSeeder
+```
+
+### Run locally
+
+```bash
+composer run dev
+```
+
+This starts:
+
+- Laravel development server
+- queue listener
+- log viewer
+- Vite dev server
+
+## Environment Notes
+
+Important environment values include:
+
+```env
+APP_NAME="ERP BLANCO"
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=
+DB_USERNAME=
+DB_PASSWORD=
+
+STRIPE_SECRET=
+STRIPE_WEBHOOK_SECRET=
+```
+
+## Useful Commands
+
+```bash
+php artisan migrate
+php artisan test
+php artisan reports:refresh-dashboard-cache
+php artisan queue:listen
+```
+
+## Notes
+
+- Orders and invoices use explicit state classes instead of plain strings.
+- Several business actions are event-driven, especially after order approval and Stripe payment success.
+- The backend includes a `docs/sales-order-store.md` file describing the sales order API flow.
+
+## Current Scope
+
+The codebase already includes the core ERP backend flows for:
+
+- staff authentication and permissions
+- customer records
+- product catalog and units/categories
+- warehouse inventory
+- stock movement history
+- order lifecycle
+- invoice lifecycle
+- Stripe-backed payments
+- reporting and Excel exports
+
+This README is based on the implemented backend code under `backend/example-app`.
